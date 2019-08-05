@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">QRScanner_GS</string>
+    <string name="title_home">Главная</string>
+    <string name="title_dashboard">Панель</string>
+    <string name="title_notifications">Аккаунт</string>
+</resources>
