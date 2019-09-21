@@ -2,49 +2,36 @@ package com.example.qrscanner.ui;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qrscanner.R;
-import com.example.qrscanner.scanner.ScannerActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
+    private static final String TAG = "SplashActivitySpec";
 
     private TextView mTextMessage;
-    //    ProgressDialog dialog;
     private WebView myWebView;
-    ProgressDialog prDialog;
+    private ProgressDialog prDialog;
     private Intent intent;
 
-
-//    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-//            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-//        @Override
-//        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-//            switch (item.getItemId()) {
-//                case R.id.navigation_home:
-//                    startActivity(new Intent(MainActivity.this, ScannerActivity.class));
-//                    return true;
-//                case R.id.navigation_dashboard:
-//                    mTextMessage.setText(R.string.title_dashboard);
-//                    return true;
-//                case R.id.navigation_account:
-////                    mTextMessage.setText(R.string.title_notifications);
-//                    startActivity(new Intent(MainActivity.this, AccountActivity.class));
-//
-//                    return true;
-//            }
-//            return false;
-//        }
-//
-//    };
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
@@ -52,96 +39,61 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        prDialog = ProgressDialog.show(MainActivity.this, "Страница кассира", "Загружаем ...");
 
-        prDialog = ProgressDialog.show(MainActivity.this, null, "Загрузка, подождите ...");
 
+        myWebView = (WebView) findViewById(R.id.webview);
+        myWebView.getSettings().setLoadsImagesAutomatically(true);
+        myWebView.getSettings().setJavaScriptEnabled(true);
+        myWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
 
-        WebView browser = new WebView(this);
-        browser.getSettings().setJavaScriptEnabled(true);
-
-        browser.loadUrl(getIntent().getExtras().getString("url"));
-
-        setContentView(browser);
-        WebSettings ws = browser.getSettings();
+        WebSettings ws = myWebView.getSettings();
         ws.setJavaScriptEnabled(true);
-        browser.addJavascriptInterface(new Object() {
-            @JavascriptInterface // For API 17+
-            public void performClick(String strl) {
-                Toast.makeText(MainActivity.this, strl, Toast.LENGTH_SHORT).show();
+            myWebView.addJavascriptInterface(new Object() {
+                @JavascriptInterface // For API 17+
+                public void performClick(String strl) {
+                    Toast.makeText(MainActivity.this, strl, Toast.LENGTH_SHORT).show();
 
-                if (strl != null) {
-                    startActivity(new Intent(MainActivity.this, ScannerActivity.class));
-                    finish();
+                    if (strl != null) {
+                        startActivity(new Intent(MainActivity.this, MainActivity.class));
+                        finish();
+                    }
+
                 }
+            }, "ok");
 
-            }
-        }, "ok");
+            myWebView.setWebViewClient(new WebViewClient(){
+             @Override
+             public void onPageFinished(WebView view, String url) {
+                 Log.i(TAG, "Finished loading URL: " + url);
+                 if (prDialog.isShowing()) {
+                     prDialog.dismiss();
+                 }
+             }
 
-        browser.setWebViewClient(new WebViewClient() {
+             @Override
+             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                 Log.i(TAG, "Processing webview url click...");
+                 view.loadUrl(url);
+                 return true;               }
 
-//            @Override
-//            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-//
-//                super.onPageStarted(view, url, favicon);
-//            }
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                prDialog.dismiss();
-                super.onPageFinished(view, url);
-            }
-        });
-    }
+             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                 Log.e(TAG, "Error: " + description);
+                 Toast.makeText(MainActivity.this, "Oh ERROR! " + description, Toast.LENGTH_SHORT).show();
+
+             }
+         });
+         myWebView.loadUrl("http://feligram.com:8083/cashier");
+
+
+//        mTextMessage = (TextView) findViewById(R.id.message);
+//        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+//        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+
 }
-//
-//
-//
-////        progressBar = new ProgressBar(MainActivity.this,null,android.R.attr.progressBarStyleLarge);
-////        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(100,100);
-////        params.addRule(ConstraintLayout.CENTER_IN_PARENT);
-////        layout.addView(progressBar,params);
-////        progressBar.setVisibility(View.VISIBLE);  //To show ProgressBar
-//
-//
-////         myWebView = (WebView) findViewById(R.id.webview);
-////         myWebView.loadUrl("https://subshop.kz/");
-////
-//////        progressBar.setVisibility(View.GONE);
-////
-////         myWebView.getSettings().setJavaScriptEnabled(true);//
-////
-////        myWebView.addJavascriptInterface(valid, "valid");
-//////        myWebView.addJavascriptInterface(refuse, "refuse");
-////
-////
-////
-////         myWebView.setWebViewClient(new WebViewClient());
-////         myWebView.setWebChromeClient(new WebChromeClient(){
-////
-////             @Override
-////             public void onProgressChanged(WebView view, int newProgress) {
-////                 super.onProgressChanged(view, newProgress);
-////             }
-////
-////             @Override
-////             public void onReceivedTitle(WebView view, String title) {
-////                 super.onReceivedTitle(view, title);
-////             }
-////
-////             @Override
-////             public void onReceivedIcon(WebView view, Bitmap icon) {
-////                 super.onReceivedIcon(view, icon);
-////             }
-////         });
-//
-//
-////         dialog.dismiss();
-//
-////        mTextMessage = (TextView) findViewById(R.id.message);
-////        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-////        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-//
-//    }
 //
 ////    public void loadPage (View view) {
 ////        WebView browser = new WebView( this ) ;
@@ -194,11 +146,41 @@ public class MainActivity extends AppCompatActivity {
 //            finish();
 //        }
 //    }
+//    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+//            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+//        @Override
+//        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+//            switch (item.getItemId()) {
+//                case R.id.navigation_home:
+//                    startActivity(new Intent(MainActivity.this, ScannerActivity.class));
+//                    return true;
+//                case R.id.navigation_dashboard:
+//                    mTextMessage.setText(R.string.title_dashboard);
+//                    return true;
+//                case R.id.navigation_account:
+////                    mTextMessage.setText(R.string.title_notifications);
+//                    startActivity(new Intent(MainActivity.this, AccountActivity.class));
 //
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
+//                    return true;
+//            }
+//            return false;
+//        }
+//
+//    };
+//        progressBar = new ProgressBar(MainActivity.this,null,android.R.attr.progressBarStyleLarge);
+//        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(100,100);
+//        params.addRule(ConstraintLayout.CENTER_IN_PARENT);
+//        layout.addView(progressBar,params);
+//        progressBar.setVisibility(View.VISIBLE);  //To show ProgressBar
+//
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 //        prDialog.dismiss();
 //        prDialog.cancel();
-//    }
+        if (prDialog != null)
+            prDialog = null;
+    }
+
+}
 

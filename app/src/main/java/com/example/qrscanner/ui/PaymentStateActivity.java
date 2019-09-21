@@ -18,10 +18,10 @@ public class PaymentStateActivity extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageState);
 
-        if (payment == null)
-            imageView.setImageResource(R.drawable.your_logo);
-        else
-            imageView.setImageResource(R.drawable.splash_back);
+        if (getIntent() != null)
+                imageView.setImageResource(R.drawable.ic_checked);
+            else
+                imageView.setImageResource(R.drawable.ic_cancel);
 
     }
 }

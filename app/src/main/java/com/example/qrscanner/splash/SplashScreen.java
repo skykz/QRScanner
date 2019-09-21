@@ -10,12 +10,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.Toast;
-
-import com.example.qrscanner.TestActivity;
 import com.example.qrscanner.printer.PrinterActivity;
-import com.example.qrscanner.scanner.ScannerActivity;
 import com.example.qrscanner.ui.MainActivity;
+
 
 public class SplashScreen extends AppCompatActivity {
 
@@ -51,7 +48,7 @@ public class SplashScreen extends AppCompatActivity {
 
             //Toast.makeText(getApplicationContext(),"Проблема с интернетом! Проверьте соединение с интернетом",Toast.LENGTH_LONG).show();
         }else {
-                Intent intent = new Intent(this, PrinterActivity.class);
+                Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 finish();
 //            } else {

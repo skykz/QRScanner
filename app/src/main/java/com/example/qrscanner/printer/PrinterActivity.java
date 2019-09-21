@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qrscanner.R;
+import com.example.qrscanner.ui.PaymentStateActivity;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -130,6 +131,10 @@ public class PrinterActivity extends AppCompatActivity {
             });
             thread.run();
         }
+        Intent intent = new Intent(this,PaymentStateActivity.class);
+            intent.putExtra("state",testBytes.length);
+                startActivity(intent);
+
     }
 
 

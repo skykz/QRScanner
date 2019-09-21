@@ -12,10 +12,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-
-import java.util.HashMap;
-import java.util.Iterator;
-
 public class TestActivity extends AppCompatActivity {
 
 //    String actionString = "com.example.qrscanner.USB_PERMISSION";
