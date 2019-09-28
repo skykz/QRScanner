@@ -4,33 +4,29 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
+
 import android.os.Bundle;
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ProgressBar;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qrscanner.R;
-
 public class MainActivity extends AppCompatActivity{
-    private static final String TAG = "SplashActivitySpec";
+    private static final String TAG = "MainActivity";
 
     private TextView mTextMessage;
     private WebView myWebView;
     private ProgressDialog prDialog;
     private Intent intent;
+    private static final String ACTION_USB_PERMISSION = "com.example.qrscanner.printer.USB_PERMISSION";
 
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
@@ -61,7 +57,7 @@ public class MainActivity extends AppCompatActivity{
                     }
 
                 }
-            }, "ok");
+            }, "report");
 
             myWebView.setWebViewClient(new WebViewClient(){
              @Override
@@ -74,7 +70,7 @@ public class MainActivity extends AppCompatActivity{
 
              @Override
              public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                 Log.i(TAG, "Processing webview url click...");
+                 Log.i(TAG, "Processing WebView url click...");
                  view.loadUrl(url);
                  return true;               }
 
@@ -85,16 +81,35 @@ public class MainActivity extends AppCompatActivity{
 
              }
          });
-         myWebView.loadUrl("http://feligram.com:8083/cashier");
-
-
-//        mTextMessage = (TextView) findViewById(R.id.message);
-//        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-//        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
+         myWebView.loadUrl("http://feligram.com:8083/cashier?id=30&accountName=Coperate");
 
 }
-//
+
+
+
+    @Override
+    public void onBackPressed() {
+//        txtUrl.setHint("http://www.librarising.com/astrology/celebs/images2/QR/queenelizabethii.jpg");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Moustachify Link")
+                .setMessage("Введите пароль, чтобы выйти!")
+//                .setView(txtUrl)
+                .setPositiveButton("Готово", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+//                        String url = txtUrl.getText().toString();
+//                        moustachify(null, url);
+                    }
+                })
+                .setNegativeButton("Назад", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                })
+                .show();
+    }
+
+
+    //
 ////    public void loadPage (View view) {
 ////        WebView browser = new WebView( this ) ;
 ////        browser.getSettings().setJavaScriptEnabled( true ) ;
@@ -176,11 +191,9 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        prDialog.dismiss();
-//        prDialog.cancel();
-        if (prDialog != null)
-            prDialog = null;
-    }
 
+        if (prDialog != null)
+            prDialog.cancel();
+    }
 }
 

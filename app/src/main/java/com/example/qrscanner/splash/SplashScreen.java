@@ -10,13 +10,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.LinearLayout;
+
 import com.example.qrscanner.printer.PrinterActivity;
-import com.example.qrscanner.ui.MainActivity;
 
 
 public class SplashScreen extends AppCompatActivity {
 
-    private static final String TAG = "SplashActivitySpec";
+    private static final String TAG = "SplashActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class SplashScreen extends AppCompatActivity {
 
             //Toast.makeText(getApplicationContext(),"Проблема с интернетом! Проверьте соединение с интернетом",Toast.LENGTH_LONG).show();
         }else {
-                Intent intent = new Intent(this, MainActivity.class);
+                Intent intent = new Intent(this, PrinterActivity.class);
                 startActivity(intent);
                 finish();
 //            } else {

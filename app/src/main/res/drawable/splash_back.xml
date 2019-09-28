@@ -12,8 +12,8 @@
     <item android:height="160dp"
         android:width="160dp"
         android:gravity="center|top"
-        android:top="200dp">
+        android:top="235dp">
         <bitmap
-            android:src="@drawable/your_logo"/>
+            android:src="@drawable/launcher_app"/>
     </item>
 </layer-list>
