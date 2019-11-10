@@ -10,6 +10,7 @@
 
     <application
         android:allowBackup="true"
+        android:name=".network.RetrofitMain"
         android:icon="@mipmap/ic_launcher_bsg"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_bsg_round"
@@ -17,37 +18,48 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".ReportViewActivity"/>
-        <activity android:name=".ui.PaymentStateActivity" />
-        <activity android:name=".TestActivity">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-        </activity> <!-- <uses-library android:name="com.android.future.usb.accessory" /> -->
-        <activity
-            android:name=".splash.SplashScreen"
-            android:label="@string/app_name"
-            android:theme="@style/SplashScreen">
+        <activity android:name=".ui.MoneyBackActivity"/>
+        <activity android:name=".ui.NavigationActivity"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ReportViewActivity" />
+        <activity android:name=".ui.PaymentStateActivity" /> <!-- <activity android:name=".TestActivity"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" /> -->
+        <!-- </intent-filter> -->
+        <!-- </activity> &lt;!&ndash; <uses-library android:name="com.android.future.usb.accessory" /> &ndash;&gt; -->
+        <!--<activity-->
+            <!--android:name=".splash.SplashScreen"-->
+            <!--android:label="@string/app_name"-->
+            <!--android:theme="@style/SplashScreen">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
         <activity android:name=".printer.PrinterActivity">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" /> -->
+            <!-- <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" /> -->
+            <!-- </intent-filter> -->
+        </activity>
+        <!--<activity android:name="r"/>-->
+        <activity
+            android:name=".ui.MainActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.MainActivity"
-            android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize" />
-
-        <!--<meta-data-->
-            <!--android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"-->
-            <!--android:resource="@xml/device_filter" />-->
     </application>
 
 </manifest>

@@ -7,15 +7,20 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.LinearLayout;
-
-import com.example.qrscanner.printer.PrinterActivity;
+import android.widget.Toast;
+import com.example.qrscanner.R;
+import com.example.qrscanner.ui.NavigationActivity;
 
 
 public class SplashScreen extends AppCompatActivity {
 
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
     private static final String TAG = "SplashActivity";
 
     @Override
@@ -24,14 +29,15 @@ public class SplashScreen extends AppCompatActivity {
 
         if (!isOnline())
         {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.MyDialogTheme);
             builder.setTitle("Нет интернет соединении");
-            builder.setMessage("Подключитесь к интернету...");
+            builder.setMessage("Попробуйте позже...");
+            builder.setIcon(R.drawable.ic_no_network);
+            builder.setCancelable(false);
 
             builder.setNeutralButton("ОК", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-
                     finish();
                     System.exit(0);
                 }
@@ -45,17 +51,11 @@ public class SplashScreen extends AppCompatActivity {
             positiveButtonLL.gravity = Gravity.CENTER;
             neutralButton.setLayoutParams(positiveButtonLL);
 
-
-            //Toast.makeText(getApplicationContext(),"Проблема с интернетом! Проверьте соединение с интернетом",Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"Проблема с интернетом! Проверьте соединение с интернетом",Toast.LENGTH_LONG).show();
         }else {
-                Intent intent = new Intent(this, PrinterActivity.class);
+                Intent intent = new Intent(this, NavigationActivity.class);
                 startActivity(intent);
                 finish();
-//            } else {
-//                Intent intent = new Intent(this, NumberActivity.class);
-//                startActivity(intent);
-//                finish();
-//            }
         }
     }
 
@@ -80,7 +80,6 @@ public class SplashScreen extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        getIntent();
         isOnline();
     }
 

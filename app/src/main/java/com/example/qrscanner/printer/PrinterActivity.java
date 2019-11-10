@@ -19,15 +19,11 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.qrscanner.R;
-import com.example.qrscanner.ui.PaymentStateActivity;
-
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -152,7 +148,7 @@ public class PrinterActivity extends AppCompatActivity {
                             byte[] bytes = printdata.getBytes();
                             int b = mConnection.bulkTransfer(mEndpointBulkOut, bytes, bytes.length, 100000);
 //                            int c = mConnection.bulkTransfer(mEndpointBulkOut, cut_paper, cut_paper.length, 100);
-                            Log.i("Return Status", "b-->" + b);
+                            Log.i("Return Status", "b ------------------>" + b);
 //                            Log.i("Return Status", "b-->" + c);
                         }).start();
 
@@ -163,7 +159,7 @@ public class PrinterActivity extends AppCompatActivity {
             }
         }else{
             mUsbManager.requestPermission(mDevice, mPermissionIntent);
-            Toast.makeText(context, "Device have no permission", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "У принтера нету доступа. Разрешите", Toast.LENGTH_SHORT).show();
         }
     }
 //    private void print(final UsbDeviceConnection connection, final UsbInterface usbInterface) {
