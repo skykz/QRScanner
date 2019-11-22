@@ -4,7 +4,24 @@ package com.example.qrscanner.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Transactions {
+import java.io.Serializable;
+
+public class Transactions implements Serializable {
+
+    private int shiftId;
+
+    public Transactions(int shiftId) {
+        this.shiftId = shiftId;
+    }
+
+    public int getShiftId() {
+        return shiftId;
+    }
+
+    public void setShiftId(int shiftId) {
+        this.shiftId = shiftId;
+    }
+
     @SerializedName("Id")
     @Expose
     private int id;
@@ -76,6 +93,19 @@ public class Transactions {
 
     public String getLogin() {
         return login;
+    }
+
+    @Override
+    public String toString() {
+        return "Transactions{" +
+                "id=" + id +
+                ", date='" + date + '\'' +
+                ", price=" + price +
+                ", balance='" + balance + '\'' +
+                ", gas='" + gas + '\'' +
+                ", login='" + login + '\'' +
+                ", liters=" + liters +
+                '}';
     }
 
     public void setLogin(String login) {

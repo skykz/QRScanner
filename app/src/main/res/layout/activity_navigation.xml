@@ -8,20 +8,12 @@
 
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
+        android:id="@+id/toolbar_navigator"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:elevation="4dp"
+        android:background="#578FE2"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
         tools:ignore="MissingConstraints">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BSG"
-            android:textColor="@color/cardview_light_background"
-            android:textSize="22sp"
-            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -41,11 +33,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tool_bar"
-            android:layout_gravity="right"
-            android:layout_marginRight="25dp"
+            android:layout_gravity="end"
+            android:layout_marginRight="10dp"
             android:gravity="center_horizontal|center_vertical"
             android:text=" Не подключено"
-            android:textColor="@color/colorDisconnected"
+            android:textColor="#D63B3B"
             android:textSize="18sp"
             android:textStyle="bold"
             tools:layout_editor_absoluteX="16dp"
@@ -64,14 +56,14 @@
         android:background="@drawable/ripple_effect"
         android:padding="10dp"
         android:text="Распечатать"
-        android:textColor="@color/cardview_light_background"
-        android:textSize="24sp"
+        android:textColor="#F4F7F4"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.81" />
+        app:layout_constraintVertical_bias="0.449" />
 
     <Button
         android:id="@+id/buttonDeleteUser"
@@ -82,7 +74,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@drawable/ripple_effect"
+        android:background="@drawable/ripple_remove"
         android:padding="10dp"
         android:text="Удалить из очереди"
         android:textColor="@color/cardview_light_background"
@@ -92,7 +84,7 @@
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.357" />
+        app:layout_constraintVertical_bias="0.311" />
 
     <Button
         android:id="@+id/buttonReturn"
@@ -107,7 +99,7 @@
         android:padding="10dp"
         android:text="Возврат"
         android:textColor="@color/cardview_light_background"
-        android:textSize="24sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
@@ -124,17 +116,18 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@drawable/ripple_effect"
+        android:background="@drawable/ripple_payment"
+
         android:padding="10dp"
         android:text="Произвести оплату"
         android:textColor="@color/cardview_light_background"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.521"
+        app:layout_constraintHorizontal_bias="0.42"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.588" />
+        app:layout_constraintVertical_bias="0.813" />
 
 
 </android.support.constraint.ConstraintLayout>

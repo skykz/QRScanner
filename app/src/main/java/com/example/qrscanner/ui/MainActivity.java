@@ -1,274 +1,234 @@
 package com.example.qrscanner.ui;
 
 import android.annotation.SuppressLint;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.usb.UsbConstants;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
-import android.hardware.usb.UsbManager;
-import android.os.Build;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
+import android.os.SystemClock;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.webkit.JavascriptInterface;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.v7.widget.Toolbar;
+
 import com.example.qrscanner.R;
-import com.example.qrscanner.model.Payment;
+import com.example.qrscanner.model.CashierPayment;
 import com.example.qrscanner.model.ShiftIdResponse;
+import com.example.qrscanner.model.StartShift;
+import com.example.qrscanner.model.Users;
+import com.google.gson.Gson;
 
-
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_ATTACHED;
-import static android.hardware.usb.UsbManager.ACTION_USB_DEVICE_DETACHED;
 import static com.example.qrscanner.network.RetrofitMain.getInstance;
-import static com.example.qrscanner.utils.Constants.BALANCE;
+import static com.example.qrscanner.utils.Constants.ACCOUNT;
+import static com.example.qrscanner.utils.Constants.CASHIER_ID;
+import static com.example.qrscanner.utils.Constants.LOGIN;
+import static com.example.qrscanner.utils.Constants.MY_PREF;
+import static com.example.qrscanner.utils.Constants.PASSWORD;
+import static com.example.qrscanner.utils.Constants.PAYMENT_ID;
+import static com.example.qrscanner.utils.Constants.PERSON_ID;
+import static com.example.qrscanner.utils.Constants.SHIFT_ID;
+import static com.example.qrscanner.utils.Constants.USER_DATA;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
 
-    //main webView part
-    private WebView myWebView;
     private ProgressDialog prDialog;
-    final Context context = this;
-    private Button printbtn;
+    int paymentID,personID,shiftId;
+    private Toolbar toolbar;
+    private TextView sum,personText;
+    private Intent intent;
+    private Button one, two, three, four, five, six, seven, eight, nine, zero ,removeDigit,clear,btnPayment,btnStartShift;
+    private Button btnXOtchet,btnZOtchet,btnLogout;
+    String [] gasList;
+    String[] voluteList = {"Тенге", "Литры"};
+    Users users;
+    String oilType = "";
+    String LiterOrMoney = "";
+    Map<String,Integer> priceList = new HashMap<>();
+    ShiftIdResponse shiftIdResponse;
+    private Gson gson;
+    private SharedPreferences preferences;
+    private long mLastClickTime = 0;
 
 
-    //main printer and USB parts
-    private UsbManager mUsbManager;
-    private UsbDevice mDevice;
-    private UsbDeviceConnection mConnection;
-    private UsbInterface mInterface;
-    private UsbEndpoint mEndPoint;
-    private PendingIntent mPermissionIntent;
-    private static final String ACTION_USB_PERMISSION = "com.example.qrscanner.printer.USB_PERMISSION";
-    private HashMap<String, UsbDevice> mDeviceList;
-    private Iterator<UsbDevice> mDeviceIterator;
-    private ShiftIdResponse shiftIdResponse;
-    boolean permissionDone = false;
-    int paymentID = 0,personID = 0;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothSocket bluetoothSocket;
+    private BluetoothDevice bluetoothDevice;
 
+    private OutputStream outputStream;
+    private InputStream inputStream;
+    private Thread thread;
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private byte[] readBuffer;
+    private int readBufferPosition;
+    private volatile boolean stopWorker;
+    //TODO: commit on a new branch
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        Spinner gas = (Spinner) findViewById(R.id.spinner_gas);
+        Spinner volute = (Spinner) findViewById(R.id.spinner_money);
 
-        Intent intent = getIntent();
+        sum = (TextView) findViewById(R.id.textSum);
+        personText = (TextView) findViewById(R.id.txtPersonId);
+        clear = (Button) findViewById(R.id.buttonClearText);
+        removeDigit = (Button) findViewById(R.id.buttonRemove);
+        one = (Button) findViewById(R.id.button1);
+        two = (Button) findViewById(R.id.button2);
+        three = (Button) findViewById(R.id.button3);
+        four = (Button) findViewById(R.id.button4);
+        five = (Button) findViewById(R.id.button5);
+        six = (Button) findViewById(R.id.button6);
+        seven = (Button) findViewById(R.id.button7);
+        eight = (Button) findViewById(R.id.button8);
+        nine = (Button) findViewById(R.id.button9);
+        zero = (Button) findViewById(R.id.buttonZero);
+        btnPayment = (Button) findViewById(R.id.button_payment);
+        btnStartShift = (Button) findViewById(R.id.btnStartShift);
+        btnZOtchet = (Button) findViewById(R.id.btnZ);
+        btnXOtchet = (Button) findViewById(R.id.btnX);
+        btnLogout = (Button) findViewById(R.id.btnLogout);
 
-        if (getIntent() != null && getIntent().getExtras() != null){
-            String paymentId = intent.getStringExtra("paymentId");
-            String personId = intent.getStringExtra("personId");
+        //actions onClick
+        clear.setOnClickListener(this);
+        removeDigit.setOnClickListener(this);
+        one.setOnClickListener(this);
+        two.setOnClickListener(this);
+        three.setOnClickListener(this);
+        four.setOnClickListener(this);
+        five.setOnClickListener(this);
+        six.setOnClickListener(this);
+        seven.setOnClickListener(this);
+        eight.setOnClickListener(this);
+        nine.setOnClickListener(this);
+        zero.setOnClickListener(this);
+        toolbar.setOnClickListener(this);
+        btnPayment.setOnClickListener(this);
+        btnStartShift.setOnClickListener(this);
+        btnZOtchet.setOnClickListener(this);
+        btnXOtchet.setOnClickListener(this);
+        btnLogout.setOnClickListener(this);
+        btnPayment.setEnabled(false);
+        autoConnection();
 
-           paymentID = Integer.valueOf(paymentId);
-           personID = Integer.valueOf(personId);
+        gson = new Gson();
+        preferences = getSharedPreferences(MY_PREF, MODE_PRIVATE);
+        String json = preferences.getString(USER_DATA, null);
+
+        shiftId = preferences.getInt(SHIFT_ID, 0);
+        paymentID = preferences.getInt(PAYMENT_ID, 0);
+        personID = preferences.getInt(PERSON_ID, 0);
+        users = gson.fromJson(json, Users.class);
+
+        if (shiftId != 0){
+            btnZOtchet.setVisibility(View.VISIBLE);
+            btnXOtchet.setVisibility(View.VISIBLE);
+            btnLogout.setVisibility(View.VISIBLE);
+            btnStartShift.setVisibility(View.GONE);
+            btnPayment.setEnabled(true);
+        }else{
+            btnZOtchet.setVisibility(View.GONE);
+            btnXOtchet.setVisibility(View.GONE);
+            btnLogout.setVisibility(View.GONE);
+            btnStartShift.setVisibility(View.VISIBLE);
+            btnPayment.setEnabled(false);
         }
 
 
-//        // usb manager to detect
-//        mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-//        mDeviceList = mUsbManager.getDeviceList();
-//
-//
-//        if (mDeviceList.size() > 0) {
-//            mDeviceIterator = mDeviceList.values().iterator();
-//
-//
-//        if (mDeviceIterator.hasNext()) {
-//            mDevice = mDeviceIterator.next();
-//            Toast.makeText(this, "Устройство подключено " + mDevice.getProductName(), Toast.LENGTH_SHORT).show();
-//
-//        }
-////            Toast.makeText(this, "Устройство подключено ____", Toast.LENGTH_SHORT).show();
-//
-//        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-//            IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-//            filter.addAction(ACTION_USB_DEVICE_ATTACHED);
-//            filter.addAction(ACTION_USB_DEVICE_DETACHED);
-//            registerReceiver(mUsbReceiver, filter);
-//
-//        mUsbManager.requestPermission(mDevice, mPermissionIntent);
-//
-//
-//    } else {
-//        Toast.makeText(this, "Пожалуйста, подключите принтер через USB", Toast.LENGTH_SHORT).show();
-//    }
-//
+        if (users != null) {
+            gasList = new String[users.gases.size()];
+            System.out.println(" --------------- " + users.getGases() + "\n");
+            personText.setText(String.valueOf(personID));
 
-        ////-----------------------------------------------------------
-        /// Main Activity methods
-        prDialog = ProgressDialog.show(MainActivity.this, "Подождите", "Загружаем ...");
+            for (int i = 0; i < users.getGases().size(); i++) {
+                gasList[i] = users.gases.get(i).gasName;
+                priceList.put(users.gases.get(i).gasName, users.gases.get(i).gasPrice);
+            }
+        }
+            ArrayAdapter<String> adapterVolute = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, voluteList);
+            adapterVolute.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            volute.setAdapter(adapterVolute);
 
+            ArrayAdapter<String> adapterGas = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, gasList);
+            adapterGas.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            gas.setAdapter(adapterGas);
 
-        myWebView = (WebView) findViewById(R.id.webview);
-        myWebView.getSettings().setLoadsImagesAutomatically(true);
-        myWebView.getSettings().setJavaScriptEnabled(true);
-        myWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            volute.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    ((TextView) parent.getChildAt(0)).setTextSize(11);
+                    LiterOrMoney = (String) parent.getItemAtPosition(position);
+                    System.out.println("&&&&&&&&&&&&& " + LiterOrMoney);
 
-        WebSettings ws = myWebView.getSettings();
-        ws.setJavaScriptEnabled(true);
-
-            myWebView.addJavascriptInterface(new Object() {
-                @JavascriptInterface // For API 17+
-                public void performClick(String strl) {
-                    Log.d("ОПЛАТИТЬ","WebView ----------- button is working!"+strl);
-                    if (strl != null) {
-                        prDialog.show();
-
-                        if (paymentID != 0){
-                        Payment payment = new Payment(paymentID);
-
-                        Call<String> call = getInstance().getApiService().doPayment(payment);
-                        call.enqueue(new Callback <String>() {
-                            @Override
-                            public void onResponse(Call<String> call, Response<String> response) {
-                                if (response.isSuccessful()) {
-                                    if (response.body() != null) {
-
-                                        if (response.body().contains("true")){
-                                            Toast.makeText(getBaseContext(), "Оплата прошла успешно.", Toast.LENGTH_LONG).show();
-                                        goToMain();
-                                            }
-                                        else if (response.body().contains("false")){
-                                            Toast.makeText(getBaseContext(),"Оплата не прошла!",Toast.LENGTH_LONG).show();
-                                            goToMain();
-                                        }else{
-                                            Toast.makeText(getBaseContext(),"Серверная ошибка",Toast.LENGTH_LONG).show();
-                                            goToMain();
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(getBaseContext(),"Неизвестная ошибка",Toast.LENGTH_LONG).show();
-                                    Log.d("onResponse: !!!!! POST ", "Серверная ошибка");
-                                }
-                            }
-                            @Override
-                            public void onFailure(Call<String> call, Throwable t) {
-                                Toast.makeText(getBaseContext(),"SERVER ошибка",Toast.LENGTH_SHORT).show();
-                                Log.d("OnFailure ---- ERROR ", t.getMessage());
-
-                            }
-                        });}else{
-                            Toast.makeText(getBaseContext(),"Клиента не существует",Toast.LENGTH_LONG).show();
-                        }
-                    }
                 }
-            }, "ok");
 
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
 
+            AdapterView.OnItemSelectedListener itemSelectedListener = new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    oilType = (String) parent.getItemAtPosition(position);
+                    ((TextView) parent.getChildAt(0)).setTextSize(12);
 
-            myWebView.setWebViewClient(new WebViewClient(){
-             @Override
-             public void onPageFinished(WebView view, String url) {
-                 Log.i(TAG, "Finished loading URL: " + url);
-                 if (prDialog.isShowing()) {
-                     prDialog.dismiss();
-                 }
-             }
+                    System.out.println("###################### " + oilType);
+                }
 
-             @Override
-             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                 Log.i(TAG, "Processing WebView url click...");
-                 view.loadUrl(url);
-                 return true;
-             }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    Toast.makeText(getBaseContext(), "Выберите вид Бензин", Toast.LENGTH_LONG).show();
+                }
+            };
+            gas.setOnItemSelectedListener(itemSelectedListener);
 
-             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                 Log.e(TAG, "Error: " + description);
-                 Toast.makeText(MainActivity.this, "Oh ошибка вебвью! " + description, Toast.LENGTH_SHORT).show();
-             }
-         });
-
-            if (personID != 0)
-                 myWebView.loadUrl("http://feligram.com:8083/cashier?id="+personID+"&accountName="+BALANCE+"");
-            else
-                myWebView.loadUrl("http://feligram.com:8083/cashier");
-
-}
-
-//    final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            String action = intent.getAction();
-//            UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-//
-//            if (ACTION_USB_PERMISSION.equals(action)) {
-//                synchronized (this) {
-////                    Log.d("PrinterManager", "Device Attached: __________________ " + device.getDeviceName() + " " + device.getProductId() + " " + device.getVendorId());
-//
-//                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-//                        if (device != null) {
-//                            //call method to set up device communication
-//                            permissionDone = true;
-//                            mInterface = device.getInterface(0);
-//                            mEndPoint = mInterface.getEndpoint(0);
-//                            mConnection = mUsbManager.openDevice(device);
-//                            status_printer.setTextColor(getResources().getColor(R.color.colorConnected));
-//                            status_printer.setText("Подключен ");
-//                            Toast.makeText(context, "Разрешение получено", Toast.LENGTH_SHORT).show();
-//
-//                            //setup();
-//                        }
-//                    } else {
-//                        status_printer.setTextColor(getResources().getColor(R.color.colorDisconnected));
-//                        status_printer.setText("Не подключен");
-////                        Log.d("SUB", "permission denied for device _______________ " + device);
-//                        Toast.makeText(context, "Разрешение Не получено", Toast.LENGTH_SHORT).show();
-//                    }
-//                }
-//            }
-//            if (ACTION_USB_DEVICE_DETACHED.equals(action)) {
-//                // Device removed
-//                synchronized (this) {
-//                    permissionDone = false;
-//                    status_printer.setText("Удалено");
-//                    status_printer.setTextColor(getResources().getColor(R.color.colorDisconnected));
-//                    Toast.makeText(context, "Устройство удалено", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//            if (ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-//                // Device attached
-//                synchronized (this) {
-//                    permissionDone = true;
-//                    // Qualify the new device to suit your needs and request permission
-//                    mUsbManager.requestPermission(device, mPermissionIntent);
-//                    status_printer.setText("Подключено");
-//                    status_printer.setTextColor(getResources().getColor(R.color.colorAttached));
-//                    Toast.makeText(context, "Устройство подключено", Toast.LENGTH_SHORT).show();
-//
-//                }
-//            }
-//        }
-//    };
+    }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        if (prDialog != null)
-            prDialog.cancel();
+    protected void onRestart() {
+        super.onRestart();
+        if (shiftId != 0){
+            btnZOtchet.setVisibility(View.VISIBLE);
+            btnXOtchet.setVisibility(View.VISIBLE);
+            btnLogout.setVisibility(View.VISIBLE);
+            btnStartShift.setVisibility(View.GONE);
+            btnPayment.setEnabled(true);
+        }else{
+            btnZOtchet.setVisibility(View.GONE);
+            btnXOtchet.setVisibility(View.GONE);
+            btnLogout.setVisibility(View.GONE);
+            btnStartShift.setVisibility(View.VISIBLE);
+            btnPayment.setEnabled(false);
+        }
     }
 
     private void goToMain(){
@@ -278,264 +238,467 @@ public class MainActivity extends AppCompatActivity {
                 Intent mainIntent = new Intent(MainActivity.this, NavigationActivity.class);
                 startActivity(mainIntent);
             }
-        }, 4000);
+        }, 3000);
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.toolbar_main:
+                onBackPressed();
+                break;
+            case R.id.button1:
+                sum.setText(String.format("%s1", sum.getText()));
+                break;
+            case R.id.button2:
+                sum.setText(String.format("%s2", sum.getText()));
+                break;
+            case R.id.button3:
+                sum.setText(String.format("%s3", sum.getText()));
+                break;
+            case R.id.button4:
+                sum.setText(String.format("%s4", sum.getText()));
+                break;
+            case R.id.button5:
+                sum.setText(String.format("%s5", sum.getText()));
+                break;
+            case R.id.button6:
+                sum.setText(String.format("%s6", sum.getText()));
+                break;
+            case R.id.button7:
+                sum.setText(String.format("%s7", sum.getText()));
+                break;
+            case R.id.button8:
+                sum.setText(String.format("%s8", sum.getText()));
+                break;
+            case R.id.buttonZero:
+                sum.setText(String.format("%s0", sum.getText()));
+                break;
+            case R.id.buttonClearText:
+                if (sum.getText() != null)
+                    sum.setText(null);
+                break;
+            case R.id.buttonRemove:
+                if (sum.getText().toString().isEmpty())
+                {
+                    Toast.makeText(getBaseContext(),"Поля пуста",Toast.LENGTH_SHORT).show();
+                }else {
+                    String s = sum.getText().toString();
+                    s = s.substring(0, s.length() - 1);
+                    sum.setText(s);
+                }
+                break;
+            case R.id.button9:
+                sum.setText(String.format("%s9", sum.getText()));
+                break;
+            case R.id.btnStartShift:
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1500){
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
+                btnZOtchet.setVisibility(View.VISIBLE);
+                btnXOtchet.setVisibility(View.VISIBLE);
+                btnLogout.setVisibility(View.VISIBLE);
+                btnStartShift.setVisibility(View.GONE);
+                btnPayment.setEnabled(true);
+                System.out.println(users.cashierId + " ========= ");
 
-////-------------------------------- Printer Main methods -------------------------------------
-//@SuppressLint("NewApi")
-//public void printMessage(Context context,int id,int price,String date,String balance,String gas,String login,int liters) {
-//
-//
-//
-//    final UsbEndpoint mEndpointBulkOut;
-//
-//    if (mUsbManager.hasPermission(mDevice)){
-//        UsbInterface intf = mDevice.getInterface(0);
-//
-//        for (int i = 0; i < intf.getEndpointCount(); i++) {
-//            UsbEndpoint ep = intf.getEndpoint(i);
-//            if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-//                if (ep.getDirection() == UsbConstants.USB_DIR_OUT) {
-//
-//                    mEndpointBulkOut = ep;
-//                    mConnection = mUsbManager.openDevice(mDevice);
-//
-//                    if(mConnection!=null)
-//                        Toast.makeText(context, "Принтер подключен!", Toast.LENGTH_SHORT).show();
-//
-//                    boolean forceClaim = true;
-//                    mConnection.claimInterface(intf, forceClaim);
-//
-//                    String txt = " --------- BSG INVEST --------- \n\n" +
-//                            "ID      :  "+id+" \n" +
-//                            "Date    :  "+date+" \n" +
-//                            "Price   :  "+price+" tg \n" +
-//                            "Balance :  "+balance+" \n" +
-//                            "Toplivo :  "+gas+" \n"+
-//                            "Login   :  "+login+" \n"+
-//                            "Liters  :  "+liters+" lt\n"+
-//                            "------------------------------\n\n\n\n";
-//                    new Thread(() -> {
-//                        byte[] bytes = txt.getBytes();
-////                        int b = mConnection.bulkTransfer(mEndpointBulkOut, setJsonToPrinter(id, price, balance, gas, date, login,liters), setJsonToPrinter(id, price, balance, gas, date, login,liters).length, 100);
-//                             mConnection.bulkTransfer(mEndpointBulkOut, bytes, bytes.length, 1000);
-//                    }).start();
-//                    mConnection.releaseInterface(intf);
-//                    break;
-//                }
-//            }
-//        }
-//    }else{
-//        mUsbManager.requestPermission(mDevice, mPermissionIntent);
-//        Toast.makeText(context, "Устройство не имеет разрешения!", Toast.LENGTH_SHORT).show();
-//    }
-//    }
+                StartShift startShift =  new StartShift(Integer.valueOf(users.cashierId));
+                openShift(startShift);
 
-//    private void sendRequestPayment(){
-//        ShiftIdRequest shiftIdRequest = new ShiftIdRequest(550);
-//
-//        Call<ShiftIdResponse> call = getInstance().getApiService().getShiftData(shiftIdRequest);
-//        call.enqueue(new Callback <ShiftIdResponse>() {
-//            @Override
-//            public void onResponse(Call<ShiftIdResponse> call, Response<ShiftIdResponse> response) {
-//                if (response.isSuccessful()) {
-//                    if (response.body() != null) {
-//                        Log.d("onResponse -- ",response.message());
-//                        Toast.makeText(getBaseContext(),"Успешно",Toast.LENGTH_SHORT).show();
-//
-//                        int id = response.body().getTransactions().get(0).getId();
-//                        String date = response.body().getTransactions().get(0).getDate();
-//                        int price = response.body().getTransactions().get(0).getPrice();
-//                        String balance = response.body().getTransactions().get(0).getBalance();
-//                        String gas = response.body().getTransactions().get(0).getGas();
-//                        String login = response.body().getTransactions().get(0).getLogin();
-//                        int liters = response.body().getTransactions().get(0).getLiters();
-//
-//                        printMessage(context,id, price,date, balance, gas, login,liters);
-//
-//                    }
-//                } else {
-//                    Toast.makeText(getBaseContext(),"Refund has error",Toast.LENGTH_SHORT).show();
-//                    Log.d("onResponse: !!!!! POST ", "Серверная ошибка");
-//                }
-//            }
-//            @Override
-//            public void onFailure(Call<ShiftIdResponse> call, Throwable t) {
-//                Toast.makeText(getBaseContext(),"SERVER error",Toast.LENGTH_SHORT).show();
-//                Log.d("OnFailure ---- ERROR ", t.getMessage());
-//
-//            }
-//        });
-//
-//    }
-//
-//    private byte [] setJsonToPrinter(int id,int price,String balance,String gas,String date,String login,int liters){
-//
-//
-//        StringBuilder contentSb = new StringBuilder();
-//
-////        String titleStr = "BSG Invest" + "\n\n";
-//        contentSb.append("BSG Invest\n\n\n");
-//        contentSb.append("ID :  " + id + "\n");
-//        contentSb.append("Date :  "+ date + "\n");
-//        contentSb.append("Price : "+ price + "\n");
-//        contentSb.append("Balance :  "+ balance + "\n");
-//        contentSb.append("GAS :  "+ gas + "\n");
-//        contentSb.append("Login :  "+ login + "\n");
-//        contentSb.append("Liters :  "+ liters + "\n\n\n\n\n");
-//
-////    StringBuilder content2Sb = new StringBuilder();
-//
-////    String jpaRef   = "XXXX-XXXX-XXXX-XXXX" + "\n";
-////        String message  = "___ BSG Invest company: www.bsg.kz ___" + "\n\n\n\n\n";
-////    long milsecond   = System.currentTimeMillis();
-////    String date  = DateUtil.timeMilisToString(milsecond, "dd-MM-yy / HH:mm")  + "\n\n";
-//
-////        byte[] titleByte  = Printer.printfont(titleStr, FontDefine.FONT_48PX_HEIGHT_UNDERLINE, FontDefine.Align_CENTER,
-////                (byte)0x1A, PocketPos.LANGUAGE_ENGLISH);
-//
-//        byte[] content1Byte = Printer.printfont(contentSb.toString(), FontDefine.FONT_32PX,FontDefine.Align_LEFT,
-//                (byte)0x1A, PocketPos.LANGUAGE_ENGLISH);
-////
-////    byte[] refByte      = Printer.printfont(jpaRef, FontDefine.FONT_24PX,FontDefine.Align_CENTER,  (byte)0x1A,
-////            PocketPos.LANGUAGE_ENGLISH);
-////
-////        byte[] messageByte  = Printer.printfont(message, FontDefine.FONT_24PX,FontDefine.Align_CENTER,  (byte)0x1A,
-////                PocketPos.LANGUAGE_ENGLISH);
-//
-////    byte[] content2Byte = Printer.printfont(content2Sb.toString(), FontDefine.FONT_24PX,FontDefine.Align_LEFT,
-////            (byte)0x1A, PocketPos.LANGUAGE_ENGLISH);
-////
-////    byte[] message2Byte = Printer.printfont(message2, FontDefine.FONT_24PX,FontDefine.Align_CENTER,  (byte)0x1A,
-////            PocketPos.LANGUAGE_ENGLISH);
-////
-////    byte[] dateByte     = Printer.printfont(date, FontDefine.FONT_24PX,FontDefine.Align_LEFT, (byte)0x1A,
-////            PocketPos.LANGUAGE_ENGLISH);
-//
-//        byte[] totalByte  = new byte[content1Byte.length ];
-//        System.out.println("total byte --------- "+totalByte);
-//    /*
-//    -------------------------------------
-//     */
-//        int offset = 0;
-////        System.arraycopy(titleByte, 0, totalByte, offset, titleByte.length);
-////        offset += titleByte.length;
-//
-//        System.arraycopy(content1Byte, 0, totalByte, offset, content1Byte.length);
-//        offset += content1Byte.length;
-////
-////    System.arraycopy(refByte, 0, totalByte, offset, refByte.length);
-////    offset += refByte.length;
-////
-////        System.arraycopy(messageByte, 0, totalByte, offset, messageByte.length);
-////        offset += messageByte.length;
-////
-////    System.arraycopy(content2Byte, 0, totalByte, offset, content2Byte.length);
-////    offset += content2Byte.length;
-////
-////    System.arraycopy(message2Byte, 0, totalByte, offset, message2Byte.length);
-////    offset += message2Byte.length;
-////
-////    System.arraycopy(dateByte, 0, totalByte, offset, dateByte.length);
-//
-//        /// main variable, which contains main data to print it
-//        byte[] sendData = PocketPos.FramePack(PocketPos.FRAME_TOF_PRINT, totalByte, 0, totalByte.length);
-//
-//        System.out.println("byte string ---------- "+sendData);
-//
-//        return  sendData;
-//    }
-
-    private String translateDeviceClass(int deviceClass) {
-
-        switch (deviceClass) {
-
-            case UsbConstants.USB_CLASS_APP_SPEC:
-                return "Application specific USB class";
-
-            case UsbConstants.USB_CLASS_AUDIO:
-                return "USB class for audio devices";
-
-            case UsbConstants.USB_CLASS_CDC_DATA:
-                return "USB class for CDC devices (communications device class)";
-
-            case UsbConstants.USB_CLASS_COMM:
-                return "USB class for communication devices";
-
-            case UsbConstants.USB_CLASS_CONTENT_SEC:
-                return "USB class for content security devices";
-
-            case UsbConstants.USB_CLASS_CSCID:
-                return "USB class for content smart card devices";
-
-            case UsbConstants.USB_CLASS_HID:
-                return "USB class for human interface devices (for example, mice and keyboards)";
-
-            case UsbConstants.USB_CLASS_HUB:
-                return "USB class for USB hubs";
-
-            case UsbConstants.USB_CLASS_MASS_STORAGE:
-                return "USB class for mass storage devices";
-
-            case UsbConstants.USB_CLASS_MISC:
-                return "USB class for wireless miscellaneous devices";
-
-            case UsbConstants.USB_CLASS_PER_INTERFACE:
-                return "USB class indicating that the class is determined on a per-interface basis";
-
-            case UsbConstants.USB_CLASS_PHYSICA:
-                return "USB class for physical devices";
-
-            case UsbConstants.USB_CLASS_PRINTER:
-                return "USB class for printers";
-
-            case UsbConstants.USB_CLASS_STILL_IMAGE:
-                return "USB class for still image devices (digital cameras)";
-
-            case UsbConstants.USB_CLASS_VENDOR_SPEC:
-                return "Vendor specific USB class";
-
-            case UsbConstants.USB_CLASS_VIDEO:
-                return "USB class for video devices";
-
-            case UsbConstants.USB_CLASS_WIRELESS_CONTROLLER:
-                return "USB class for wireless controller devices";
-
-            default:
-                return "Unknown USB class!";
+                break;
+            case R.id.button_payment:
+                System.out.println(oilType + " ------------");
+                calculateResult(oilType,LiterOrMoney);
+                break;
+            case R.id.btnLogout:
+                System.out.println("--------------- logout ");
+                logout();
+                break;
+            case R.id.btnX:
+                int localShiftId = preferences.getInt(SHIFT_ID, 0);
+                reportX("X - Отчет",localShiftId);
+                break;
+            case R.id.btnZ:
+                localShiftId = preferences.getInt(SHIFT_ID, 0);
+                reportZ("Z - Отчет",localShiftId);
+                break;
         }
     }
 
-    @SuppressLint("NewApi")
-    public void closeConnection(Context context){
-        BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
+    void reportX(String titleReport,int shiftID){
+        prDialog = ProgressDialog.show(this, "Подождите", "Загружаем ...");
 
-                if (ACTION_USB_DEVICE_DETACHED.equals(action)) {
-                    UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                    if (device != null) {
-                        Toast.makeText(context, "Принтер отключен", Toast.LENGTH_SHORT).show();
-                        mConnection.close();
+        Call<ShiftIdResponse> call = getInstance().getApiService().getShiftData(shiftID);
+        call.enqueue(new Callback <ShiftIdResponse>() {
+            @Override
+            public void onResponse(Call<ShiftIdResponse> call, Response<ShiftIdResponse> response) {
+                if (response.isSuccessful()) {
+                    if (response.body() != null) {
+
+                        ShiftIdResponse shiftIdResponse = response.body();
+                        intent = new Intent(getBaseContext(), ReportDisplayActivity.class);
+                        intent.putExtra("reportData",shiftIdResponse);
+                        intent.putExtra("title",titleReport);
+                        startActivity(intent);
                     }
+                    prDialog.dismiss();
+                } else {
+                    Toast.makeText(getBaseContext(),"Нет данных",Toast.LENGTH_SHORT).show();
+                    Log.d("onResponse: !!!!! POST ", "Серверная ошибка");
+                    prDialog.dismiss();
                 }
             }
-        };
+            @Override
+            public void onFailure(Call<ShiftIdResponse> call, Throwable t) {
+                Toast.makeText(getBaseContext(),"SERVER error",Toast.LENGTH_SHORT).show();
+                Log.d("OnFailure ---- ERROR ", t.getMessage());
+                prDialog.dismiss();
+            }
+        });
+    }
+
+    void reportZ(String titleReport,int shiftID){
+        prDialog = ProgressDialog.show(this, "Подождите", "Загружаем ...");
+
+        Call<ShiftIdResponse> call = getInstance().getApiService().doLogoutShift(shiftID);
+        call.enqueue(new Callback <ShiftIdResponse>() {
+            @Override
+            public void onResponse(Call<ShiftIdResponse> call, Response<ShiftIdResponse> response) {
+                if (response.isSuccessful()) {
+                    if (response.body() != null) {
+                        System.out.println(" ---- ------- " + response.body() + "\n\n");
+                        if (response.body().getTransactions().size() != 0) {
+                            shiftIdResponse = response.body();
+                            preferences.edit().remove(SHIFT_ID).commit();
+                            int shiftID = preferences.getInt(SHIFT_ID, 0);//"No name defined" is the default value.
+                            System.out.println(shiftID + " ---- shift id is removed! ");
+                            try {
+                                printData(shiftIdResponse);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(getBaseContext(), "Ошибка во время распечатки", Toast.LENGTH_SHORT).show();
+                            }
+                            intent = new Intent(getBaseContext(), ReportDisplayActivity.class);
+                            intent.putExtra("reportData", shiftIdResponse);
+                            intent.putExtra("title", titleReport);
+                            startActivity(intent);
+                        }
+                    }
+                    prDialog.dismiss();
+                } else {
+                    Toast.makeText(getBaseContext(),"Ответ у нас пустой",Toast.LENGTH_SHORT).show();
+                    Log.d("onResponse: !!!!! POST ", "Серверная ошибка");
+                    prDialog.dismiss();
+                }
+            }
+            @Override
+            public void onFailure(Call<ShiftIdResponse> call, Throwable t) {
+                Toast.makeText(getBaseContext(),"SERVER error",Toast.LENGTH_SHORT).show();
+                Log.d("OnFailure ---- ERROR ", t.getMessage());
+                prDialog.dismiss();
+            }
+        });
     }
 
 
-//    @Override
-//    public void onClick(View v) {
-//                prDialog.show();
-//                if (permissionDone) {
-//                    Toast.makeText(context, "Распечатка...", Toast.LENGTH_SHORT).show();
-//                    sendRequestPayment();
-//                    prDialog.dismiss();
-//                }else{
-//                    prDialog.dismiss();
-//                    Toast.makeText(this, "нужен permission", Toast.LENGTH_LONG).show();
-//                }
-//    }
+    void logout(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Важно")
+                .setMessage("Вы уверены выйти?")
+                .setIcon(R.drawable.ic_cancel)
+                .setCancelable(true)
+                .setPositiveButton("Ок, Выйти",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                preferences.edit().remove(LOGIN).commit();
+                                preferences.edit().remove(PASSWORD).commit();
+                                preferences.edit().remove(PERSON_ID).commit();
+                                preferences.edit().remove(PAYMENT_ID).commit();
+                                preferences.edit().remove(USER_DATA).commit();
+                                preferences.edit().remove(CASHIER_ID).commit();
+                                String login = preferences.getString(LOGIN, "----- NO Login \n");//"No name defined" is the default value.
+                                System.out.println(login);
+                                intent = new Intent(getBaseContext(),AuthActivity.class);
+                                startActivity(intent);
+                                finish();
+                                Toast.makeText(getBaseContext(),"Вы вышли",Toast.LENGTH_LONG).show();
+                            }
+                        })
+                .setNegativeButton("Отмена",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    void InfoAlert(boolean status){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle(status?"Оплата произведена успешна":"Оплата оплата не прошла")
+                .setIcon(status?R.drawable.ic_checked:R.drawable.ic_cancel)
+                .setCancelable(true)
+                .setNegativeButton("ОК",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    // calculate sum from selected items then send to server
+    void calculateResult(String oil,String paymentType){
+
+        if (!sum.getText().toString().equals("")) {
+            int oilPrice = 0;
+            int payType = Integer.parseInt(sum.getText().toString());
+            int total = 0;
+
+            for (Map.Entry<String, Integer> entry : priceList.entrySet()) {
+                if (entry.getKey().equals(oilType)) {
+                    oilPrice = entry.getValue();
+                }
+            }
+            if (paymentType.equals("Тенге"))
+                total = payType / oilPrice;
+            else if (paymentType.equals("Литры"))
+                total = oilPrice * payType;
+
+            System.out.println(payType + " --- sum");
+            System.out.println(total + " --- total ");
+            int localShiftId = preferences.getInt(SHIFT_ID, 0);
+
+            if(localShiftId != 0) {
+                System.out.println(total + " --- total ");
+                System.out.println(personID + " --- personId ");
+                System.out.println(oilPrice + " --- oil Price ");
+                System.out.println(oil + " --- oil ");
+
+                CashierPayment cashierPayment = new CashierPayment(personID, localShiftId, oilPrice, ACCOUNT, oil, total);
+                doPayment(cashierPayment);
+                System.out.println(cashierPayment.toString() + " ----- after payment Info ----------");
+            }else{
+                Toast.makeText(getBaseContext(),"У вас нету Shift ID",Toast.LENGTH_SHORT).show();
+            }
+        }else{
+            Toast.makeText(getBaseContext(),"ВВЕДИТЕ СУММУ",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    void doPayment(CashierPayment cashierPayment){
+        prDialog = ProgressDialog.show(this, "Подождите", "Загружаем ...");
+        Call<String> call = getInstance().getApiService().doPayment(cashierPayment);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    if (response.body() != null) {
+                        System.out.println(response.body());
+
+                        if (response.body().contains("true")) {
+                            InfoAlert(true);
+                            Toast.makeText(getBaseContext(), "Оплата прошла успешно!", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            InfoAlert(false);
+                            Toast.makeText(getBaseContext(), "Оплата Неосуществлёна", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } else {
+                    Toast.makeText(getBaseContext(),"Неизвестная ошибка",Toast.LENGTH_LONG).show();
+                    Log.d("DONE !!!!! POST ", "Refund is bad" + response.errorBody());
+                }
+                prDialog.dismiss();
+                if (sum.getText() != null)
+                    sum.setText(null);
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(getBaseContext(),"Серверная ошибка - "+t.getMessage(),Toast.LENGTH_LONG).show();
+                Log.d("DONE !!!!! POST ", "SERVER error");
+                prDialog.dismiss();
+                if (sum.getText() != null)
+                    sum.setText(null);
+            }
+        });
+
+    }
+
+    void openShift(StartShift shiftIdRequest){
+        prDialog = ProgressDialog.show(this, "Подождите", "Загружаем ...");
+
+        Call<StartShift> call = getInstance().getApiService().openShift(shiftIdRequest);
+        call.enqueue(new Callback<StartShift>() {
+            @Override
+            public void onResponse(Call<StartShift> call, Response<StartShift> response) {
+                if (response.isSuccessful()) {
+                    if (response.body() != null) {
+                        System.out.println(response.body().getShiftId() + " ---------------");
+
+                        int newShiftId = response.body().getShiftId();
+                        if (shiftId == 0){
+                            SharedPreferences.Editor editor = getSharedPreferences(MY_PREF, MODE_PRIVATE).edit();
+                            editor.putInt(SHIFT_ID,newShiftId);
+                            editor.commit();
+                        }
+                        Toast.makeText(getBaseContext(),"Смена начата",Toast.LENGTH_SHORT).show();
+
+                    }
+                } else {
+                    Toast.makeText(getBaseContext(),"Неизвестная ошибка",Toast.LENGTH_LONG).show();
+                    Log.d("DONE !!!!! POST ", "Refund is bad" + response.message());
+                }
+                prDialog.dismiss();
+            }
+            @Override
+            public void onFailure(Call<StartShift> call, Throwable t) {
+                Toast.makeText(getBaseContext(),"Серверная ошибка"+t.getMessage(),Toast.LENGTH_LONG).show();
+                Log.d("DONE !!!!! POST ", "SERVER error"+t.getMessage());
+                prDialog.dismiss();
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (prDialog != null)
+            prDialog.cancel();
+    }
+
+    void autoConnection(){
+
+        try{
+            FindBluetoothDevice();
+            openBluetoothPrinter();
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
+    void FindBluetoothDevice(){
+        try{
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if(bluetoothAdapter == null){
+            }
+            if(bluetoothAdapter.isEnabled()){
+                Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBT,0);
+            }
+            Set<BluetoothDevice> pairedDevice = bluetoothAdapter.getBondedDevices();
+
+            if(pairedDevice.size() > 0){
+                for(BluetoothDevice pairedDev:pairedDevice){
+                    Log.d("PRINTER","------------ " + pairedDev.getName());
+                    Log.d("PRINTER","------------ " + pairedDev.getUuids());
+                    // My Bluetoth printer name is BTP_F09F1A
+                    if(pairedDev.getName().equals("InnerPrinter")){
+                        bluetoothDevice = pairedDev;
+                        break;
+                    }
+                }
+            }
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
+    void openBluetoothPrinter() throws IOException{
+        try{
+//            //Standard uuid from string //
+            UUID uuidSting = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(uuidSting);
+            bluetoothSocket.connect();
+            outputStream = bluetoothSocket.getOutputStream();
+            inputStream = bluetoothSocket.getInputStream();
+            beginListenData();
+        }catch (Exception ex){
+        }
+    }
+
+    void printData(ShiftIdResponse shiftIdResponse) throws  IOException{
+
+        for (int i = 0; i < shiftIdResponse.getTransactions().size(); i++) {
+            try {
+           String msg = " --------- BSG INVEST --------- \n\n" +
+                        "ID         :  " + shiftIdResponse.getTransactions().get(i).getId() + " \n" +
+                        "Date       :  " + shiftIdResponse.getTransactions().get(i).getDate() + " \n" +
+                        "Price      :  " + shiftIdResponse.getTransactions().get(i).getPrice() + " tg \n" +
+                        "Balance    :  " + shiftIdResponse.getTransactions().get(i).getBalance() + " \n" +
+                        "Gas        :  " + shiftIdResponse.getTransactions().get(i).getGas() + " \n" +
+                        "Login      :  " + shiftIdResponse.getTransactions().get(i).getLogin() + " \n" +
+                        "PriceLiter :  " + shiftIdResponse.getTransactions().get(i).getLiters() + " tg or lt\n" +
+                        "------------------------------\n\n\n";
+                outputStream.write(msg.getBytes());
+//                status_printer.setText("Распечатка...");
+//                status_printer.setText("Принтер готов");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    void beginListenData(){
+        try{
+            final Handler handler = new Handler();
+            final byte delimiter = 10;
+            stopWorker = false;
+            readBufferPosition = 0;
+            readBuffer = new byte[1024];
+
+            thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (!Thread.currentThread().isInterrupted() && !stopWorker){
+                        try{
+                            int byteAvailable = inputStream.available();
+                            if(byteAvailable > 0){
+                                byte[] packetByte = new byte[byteAvailable];
+                                inputStream.read(packetByte);
+
+                                for(int i = 0; i<byteAvailable; i++){
+                                    byte b = packetByte[i];
+                                    if(b == delimiter){
+                                        byte[] encodedByte = new byte[readBufferPosition];
+                                        System.arraycopy(
+                                                readBuffer,0,
+                                                encodedByte,0,
+                                                encodedByte.length
+                                        );
+                                        final String data = new String(encodedByte,"US-ASCII");
+                                        readBufferPosition=0;
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+//                                                status_printer.setText(data);
+                                                System.out.println("Status of printer");
+                                            }
+                                        });
+                                    }else{
+                                        readBuffer[readBufferPosition++]=b;
+                                    }
+                                }
+                            }
+                        }catch(Exception ex){
+                            stopWorker=true;
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+    }
 }
 

@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:shrinkColumns="*"
     android:stretchColumns="*"
-    android:weightSum="120">
+    android:weightSum="100">
     <!--     Row 1 Starts From Here -->
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_money"
@@ -13,28 +13,24 @@
         app:navigationIcon="@drawable/ic_arrow_back" >
 
     </android.support.v7.widget.Toolbar>
+
     <LinearLayout
         android:layout_height="70dp"
+        android:gravity="center_horizontal|center_vertical"
         android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/client_id"
-            android:layout_width="185dp"
-            android:layout_height="match_parent"
-            android:layout_span="4"
-            android:gravity="center|right|center_horizontal"
-            android:text="Id клиента:"
-            android:textSize="20sp"
-            android:typeface="monospace" />
 
         <EditText
             android:id="@+id/inputClientId"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:ems="10"
-            android:hint="user login "
-            android:inputType="text"
-            android:paddingLeft="10dp" />
+            android:layout_width="354dp"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/input_group"
+            android:layout_alignTop="@+id/input_group"
+            android:background="@drawable/edit_text_top"
+            android:drawableLeft="@drawable/ic_account_circle"
+            android:drawablePadding="10dp"
+            android:hint="Id клиента"
+            android:inputType="textPersonName"
+            android:padding="15dp" />
     </LinearLayout>
 
     <TableRow
@@ -63,14 +59,14 @@
     <!--     Row 3 Starts From Here -->
     <TableRow
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
+        android:layout_height="95dp"
         android:layout_weight="10"
+        android:gravity="center_horizontal"
         >
 
         <Button
             android:id="@+id/button7"
-            android:layout_width="wrap_content"
+            android:layout_width="59dp"
             android:layout_height="fill_parent"
             android:layout_marginTop="1dp"
             android:layout_marginRight="1dp"
@@ -85,28 +81,27 @@
             android:id="@+id/button8"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:text="8"
-            android:textSize="35dp"
-            android:background="@drawable/ripple_button"
-            android:textColor="#000000"
-            android:layout_span="1"
-            android:typeface="monospace"
+            android:layout_marginTop="1dp"
             android:layout_marginRight="1dp"
-            android:layout_marginTop="1dp"/>
+            android:layout_span="1"
+            android:background="@drawable/ripple_button"
+            android:text="8"
+            android:textColor="#000000"
+            android:textSize="35dp"
+            android:typeface="monospace" />
 
         <Button
             android:id="@+id/button9"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:text="9"
-            android:textSize="35dp"
-            android:background="@drawable/ripple_button"
-            android:textColor="#000000"
-            android:layout_span="1"
-            android:typeface="monospace"
             android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"/>
-
+            android:layout_marginRight="1dp"
+            android:layout_span="1"
+            android:background="@drawable/ripple_button"
+            android:text="9"
+            android:textColor="#000000"
+            android:textSize="35dp"
+            android:typeface="monospace" />
 
 
     </TableRow>
@@ -115,9 +110,10 @@
     <!--     Row 4 Starts From Here -->
     <TableRow
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="95dp"
+        android:layout_weight="10"
         android:gravity="center_horizontal"
-        android:layout_weight="10">
+        >
 
         <Button
             android:id="@+id/button4"
@@ -165,9 +161,10 @@
     <!--     Row 5 Starts From Here -->
     <TableRow
         android:layout_width="fill_parent"
-        android:layout_height="74dp"
+        android:layout_height="95dp"
         android:layout_weight="10"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        >
 
 
         <Button
@@ -214,11 +211,10 @@
     <!--     Row 2 Starts From Here -->
     <TableRow
         android:layout_width="fill_parent"
-        android:layout_height="15dp"
-        android:layout_marginTop="2dp"
+        android:layout_height="95dp"
         android:layout_weight="10"
-        android:gravity="center_horizontal">
-
+        android:gravity="center_horizontal"
+        >
         <Button
             android:id="@+id/buttonClearText"
             android:layout_width="wrap_content"
@@ -266,20 +262,20 @@
 
     <TableRow
         android:layout_width="fill_parent"
-        android:layout_height="4dp"
+        android:layout_height="wrap_content"
         android:layout_weight="5"
         android:gravity="center_horizontal">
 
 
         <Button
             android:id="@+id/button_return"
-            android:layout_width="50dp"
-            android:layout_height="fill_parent"
+            android:layout_width="229dp"
+            android:layout_height="match_parent"
             android:layout_span="2"
             android:background="@drawable/ripple_effect"
             android:text="вернуть"
             android:textColor="#FFFDFD"
-            android:textSize="25dp"
+            android:textSize="22dp"
             android:typeface="monospace" />
 
 

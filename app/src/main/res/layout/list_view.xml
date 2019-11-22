@@ -1,0 +1,78 @@
+<LinearLayout android:id="@+id/relativeLayout1"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/cardview_light_background"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/txtDate"
+        android:layout_width="70dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/cell_shape"
+        android:ellipsize="end"
+        android:padding="5dp"
+        android:singleLine="true"
+        android:textColor="#FA181717"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/txtPrice"
+        android:layout_width="15dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/cell_shape"
+        android:ellipsize="end"
+        android:padding="5dp"
+        android:singleLine="true"
+        android:textColor="#FA181717"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/txtSum"
+        android:layout_width="30dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/cell_shape"
+        android:ellipsize="end"
+        android:padding="5dp"
+        android:singleLine="true"
+        android:textColor="#FA181717"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/txtOil"
+        android:layout_width="30dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/cell_shape"
+        android:ellipsize="end"
+        android:padding="5dp"
+        android:singleLine="true"
+        android:textColor="#FA181717"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/txtLogin"
+        android:layout_width="15dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/cell_shape"
+        android:ellipsize="end"
+        android:padding="5dp"
+        android:singleLine="true"
+        android:textColor="#FA181717"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/txtLiter"
+        android:layout_width="25dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/cell_shape"
+        android:ellipsize="end"
+        android:padding="5dp"
+        android:textSize="14sp"
+        android:singleLine="true"
+        android:textColor="#FA181717" />
+</LinearLayout>

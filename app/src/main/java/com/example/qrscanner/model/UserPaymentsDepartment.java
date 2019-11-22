@@ -1,9 +1,5 @@
 package com.example.qrscanner.model;
 
-
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 public class UserPaymentsDepartment {
 
     int departmentId;

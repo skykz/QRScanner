@@ -3,13 +3,15 @@ package com.example.qrscanner.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShiftIdResponse {
+public class ShiftIdResponse implements Serializable {
     @SerializedName("Id")
     @Expose
     private int id;
+
     @SerializedName("Status")
     @Expose
     private String status;
@@ -30,6 +32,10 @@ public class ShiftIdResponse {
     @Expose
     private String departmentName;
 
+    @SerializedName("Transactions")
+    @Expose
+    private List<Transactions> transactions;
+
     public List<Transactions> getTransactions() {
         return transactions;
     }
@@ -37,10 +43,6 @@ public class ShiftIdResponse {
     public void setTransactions(List<Transactions> transactions) {
         this.transactions = transactions;
     }
-
-    @SerializedName("Transactions")
-    @Expose
-    private List<Transactions> transactions;
 
     public int getId() {
         return id;
@@ -83,6 +85,19 @@ public class ShiftIdResponse {
 
     public int getProfit() {
         return profit;
+    }
+
+    @Override
+    public String toString() {
+        return "ShiftIdResponse{" +
+                "id=" + id +
+                ", status='" + status + '\'' +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", profit=" + profit +
+                ", departmentName='" + departmentName + '\'' +
+                ", transactions=" + transactions +
+                '}';
     }
 
     public void setProfit(int profit) {

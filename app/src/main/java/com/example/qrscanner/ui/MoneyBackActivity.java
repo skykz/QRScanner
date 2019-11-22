@@ -1,13 +1,12 @@
 package com.example.qrscanner.ui;
 
-import android.app.ActionBar;
+
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -22,7 +21,6 @@ import retrofit2.Response;
 
 import static com.example.qrscanner.network.RetrofitMain.getInstance;
 import static com.example.qrscanner.utils.Constants.ACCOUNT;
-import static com.example.qrscanner.utils.Constants.BALANCE;
 
 public class MoneyBackActivity extends AppCompatActivity implements View.OnClickListener {
     private Toolbar toolbar;
