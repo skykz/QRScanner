@@ -21,16 +21,34 @@
 
         <EditText
             android:id="@+id/inputClientId"
-            android:layout_width="354dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignStart="@+id/input_group"
             android:layout_alignTop="@+id/input_group"
             android:background="@drawable/edit_text_top"
             android:drawableLeft="@drawable/ic_account_circle"
             android:drawablePadding="10dp"
-            android:hint="Id клиента"
+            android:hint="Логин клиента"
             android:inputType="textPersonName"
-            android:padding="15dp" />
+            android:padding="15dp"
+            android:textSize="15sp" />
+        <View
+            android:layout_width="10dp"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/inputTransactionId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/input_group"
+            android:layout_alignTop="@+id/input_group"
+            android:background="@drawable/edit_text_top"
+            android:drawableLeft="@drawable/ic_transaction"
+            android:drawablePadding="10dp"
+            android:inputType="number"
+            android:hint="Id трансакции"
+            android:padding="15dp"
+            android:textSize="15sp" />
     </LinearLayout>
 
     <TableRow

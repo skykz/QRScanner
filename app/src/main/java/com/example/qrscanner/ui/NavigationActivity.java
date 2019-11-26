@@ -414,6 +414,7 @@ public class NavigationActivity extends AppCompatActivity implements View.OnClic
                 public void onFailure(Call<ShiftIdResponse> call, Throwable t) {
                     Toast.makeText(getBaseContext(), "SERVER error", Toast.LENGTH_SHORT).show();
                     Log.d("OnFailure ---- ERROR ", t.getMessage());
+                    prDialog.dismiss();
                 }
             });
         }else{

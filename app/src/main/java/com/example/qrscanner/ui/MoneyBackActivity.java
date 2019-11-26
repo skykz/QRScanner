@@ -25,7 +25,7 @@ import static com.example.qrscanner.utils.Constants.ACCOUNT;
 public class MoneyBackActivity extends AppCompatActivity implements View.OnClickListener {
     private Toolbar toolbar;
     private TextView sum;
-    private EditText clientId;
+    private EditText clientLogin,IdTransaction;
     private Intent intent;
     private Button one, two, three, four, five, six, seven, eight, nine, zero ,removeDigit,clear,btnReturn;
 
@@ -38,7 +38,8 @@ public class MoneyBackActivity extends AppCompatActivity implements View.OnClick
 
 
         sum = (TextView)findViewById(R.id.textSum);
-        clientId = (EditText)findViewById(R.id.inputClientId);
+        clientLogin = (EditText)findViewById(R.id.inputClientId);
+        IdTransaction = (EditText)findViewById(R.id.inputTransactionId);
         clear = (Button)findViewById(R.id.buttonClearText);
         removeDigit = (Button)findViewById(R.id.buttonRemove);
         btnReturn = (Button)findViewById(R.id.button_return);
@@ -80,11 +81,12 @@ public class MoneyBackActivity extends AppCompatActivity implements View.OnClick
 
             case R.id.button_return:
 
-             if (!sum.getText().toString().isEmpty() && !clientId.getText().toString().isEmpty()) {
+             if (!sum.getText().toString().isEmpty() && !clientLogin.getText().toString().isEmpty() && !IdTransaction.getText().toString().isEmpty()) {
 
                  long cash = Long.parseLong(sum.getText().toString());
-                 String login = clientId.getText().toString();
-                 Refund refund = new Refund(login,cash,ACCOUNT);
+                 String login = clientLogin.getText().toString();
+                 int idTranstion = Integer.parseInt(IdTransaction.getText().toString());
+                 Refund refund = new Refund(login,idTranstion,cash,ACCOUNT);
 
                  doRefundPayment(refund);
              }  else

@@ -26,6 +26,7 @@ import android.support.v7.widget.Toolbar;
 
 import com.example.qrscanner.R;
 import com.example.qrscanner.model.CashierPayment;
+import com.example.qrscanner.model.Payment;
 import com.example.qrscanner.model.ShiftIdResponse;
 import com.example.qrscanner.model.StartShift;
 import com.example.qrscanner.model.Users;
@@ -232,13 +233,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void goToMain(){
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Intent mainIntent = new Intent(MainActivity.this, NavigationActivity.class);
-                startActivity(mainIntent);
-            }
-        }, 3000);
+        Intent mainIntent = new Intent(MainActivity.this, NavigationActivity.class);
+        startActivity(mainIntent);
+        finish();
+//        prDialog = ProgressDialog.show(this, "Подождите", "Загружаем ...");
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//            }
+//        }, 2500);
+//        prDialog.dismiss();
     }
 
     @Override
@@ -447,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
+                                goToMain();
                             }
                         });
 
@@ -460,6 +464,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (!sum.getText().toString().equals("")) {
             int oilPrice = 0;
+            int price = 0;
             int payType = Integer.parseInt(sum.getText().toString());
             int total = 0;
 
@@ -468,10 +473,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     oilPrice = entry.getValue();
                 }
             }
-            if (paymentType.equals("Тенге"))
+            if (paymentType.equals("Тенге")) {
                 total = payType / oilPrice;
-            else if (paymentType.equals("Литры"))
-                total = oilPrice * payType;
+                price = payType;
+
+            }
+            else if (paymentType.equals("Литры")) {
+                total = payType;
+                price = oilPrice * payType;
+
+            }
 
             System.out.println(payType + " --- sum");
             System.out.println(total + " --- total ");
@@ -483,7 +494,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 System.out.println(oilPrice + " --- oil Price ");
                 System.out.println(oil + " --- oil ");
 
-                CashierPayment cashierPayment = new CashierPayment(personID, localShiftId, oilPrice, ACCOUNT, oil, total);
+                CashierPayment cashierPayment = new CashierPayment(personID, localShiftId,price, ACCOUNT, oil, total);
                 doPayment(cashierPayment);
                 System.out.println(cashierPayment.toString() + " ----- after payment Info ----------");
             }else{
@@ -505,6 +516,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         System.out.println(response.body());
 
                         if (response.body().contains("true")) {
+                            // remove user from queue
+                            deleteUserRequest();
+                            // show alert
                             InfoAlert(true);
                             Toast.makeText(getBaseContext(), "Оплата прошла успешно!", Toast.LENGTH_SHORT).show();
                         }
@@ -532,7 +546,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+    public void deleteUserRequest(){
 
+        if (paymentID != 0){
+            Log.d("onResponse:", " !!!!! ID -------" +paymentID);
+            Payment payment = new Payment(paymentID);
+            Call<String> call = getInstance().getApiService().doDeleteUserPayment(payment);
+            call.enqueue(new Callback <String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    if (response.isSuccessful()) {
+                        if (response.body() != null) {
+                            if (response.body().contains("true")){
+                                Toast.makeText(getBaseContext(), "Успешно.", Toast.LENGTH_LONG).show();
+                            }
+                            else if (response.body().contains("false")){
+                                Toast.makeText(getBaseContext(),"Не прошла",Toast.LENGTH_LONG).show();
+                            }else{
+                                Toast.makeText(getBaseContext(),"Серверная ошибка",Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    } else {
+                        Toast.makeText(getBaseContext(),"Неизвестная ошибка",Toast.LENGTH_LONG).show();
+                        Log.d("onResponse: !!!!! POST ", "Серверная ошибка");
+                    }
+                }
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    Toast.makeText(getBaseContext(),"SERVER ошибка",Toast.LENGTH_SHORT).show();
+                    Log.d("OnFailure ---- ERROR ", t.getMessage());
+                }
+            });
+        }
+    }
     void openShift(StartShift shiftIdRequest){
         prDialog = ProgressDialog.show(this, "Подождите", "Загружаем ...");
 
